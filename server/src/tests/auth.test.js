@@ -1,35 +1,23 @@
-const request = require("supertest");
-const app = require("../app");
-const User = require("../models/user");
-
-describe("Auth: Register", () => {
-  beforeEach(async () => {
-    await User.deleteMany();
+it("should login an existing user with correct credentials", async () => {
+  await request(app).post("/api/auth/register").send({
+    email: "login@test.com",
+    password: "secret123",
   });
 
-  it("should register a new user with valid credentials", async () => {
-    const res = await request(app)
-      .post("/api/auth/register")
-      .send({
-        email: "test@example.com",
-        password: "password123",
-      });
-
-    expect(res.statusCode).toBe(201);
-    expect(res.body).toHaveProperty("token");
+  const res = await request(app).post("/api/auth/login").send({
+    email: "login@test.com",
+    password: "secret123",
   });
 
-  it("should not allow duplicate email registration", async () => {
-    await request(app).post("/api/auth/register").send({
-      email: "dup@example.com",
-      password: "password123",
-    });
+  expect(res.statusCode).toBe(200);
+  expect(res.body).toHaveProperty("token");
+});
 
-    const res = await request(app).post("/api/auth/register").send({
-      email: "dup@example.com",
-      password: "password123",
-    });
-
-    expect(res.statusCode).toBe(400);
+it("should reject login with wrong password", async () => {
+  const res = await request(app).post("/api/auth/login").send({
+    email: "login@test.com",
+    password: "wrongpass",
   });
+
+  expect(res.statusCode).toBe(401);
 });
