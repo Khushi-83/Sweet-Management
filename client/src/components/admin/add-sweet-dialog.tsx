@@ -41,7 +41,6 @@ export function AddSweetDialog() {
       toast({
         title: "Validation error",
         description: "Please fill in all required fields",
-        variant: "destructive",
       })
       return
     }

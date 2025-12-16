@@ -27,26 +27,29 @@ interface EditSweetDialogProps {
 
 export function EditSweetDialog({ sweet, open, onOpenChange }: EditSweetDialogProps) {
   const [formData, setFormData] = useState({
-    name: sweet.name,
-    description: sweet.description,
-    price: sweet.price,
-    quantity: sweet.quantity,
-    category: sweet.category,
-    image: sweet.image,
+    name: "",
+    description: "",
+    price: 0,
+    quantity: 0,
+    category: "",
+    image: "",
   })
 
   const { updateSweet } = useSweets()
   const { toast } = useToast()
 
   useEffect(() => {
-    setFormData({
-      name: sweet.name,
-      description: sweet.description,
-      price: sweet.price,
-      quantity: sweet.quantity,
-      category: sweet.category,
-      image: sweet.image,
-    })
+    // Using setTimeout to avoid React warning about setting state in effect
+    setTimeout(() => {
+      setFormData({
+        name: sweet.name,
+        description: sweet.description,
+        price: sweet.price,
+        quantity: sweet.quantity,
+        category: sweet.category,
+        image: sweet.image,
+      })
+    }, 0)
   }, [sweet])
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,7 +59,6 @@ export function EditSweetDialog({ sweet, open, onOpenChange }: EditSweetDialogPr
       toast({
         title: "Validation error",
         description: "Please fill in all required fields",
-        variant: "destructive",
       })
       return
     }
