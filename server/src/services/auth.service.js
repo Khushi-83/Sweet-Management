@@ -20,6 +20,7 @@ const registerUser = async (email, password) => {
   return token;
   
 };
+
 const loginUser = async (email, password) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error("Invalid credentials");
@@ -35,6 +36,3 @@ const loginUser = async (email, password) => {
 };
 
 module.exports = { registerUser, loginUser };
-
-
-

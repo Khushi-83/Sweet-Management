@@ -3,30 +3,10 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import type { User, AuthContextType } from "@/lib/types"
+// @ts-expect-error - Need to properly type the axios module
+import api from "@/api/axios"
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-// Mock user database (in-memory)
-const MOCK_USERS = [
-  {
-    id: "1",
-    email: "admin@sweetshop.com",
-    password: "admin123",
-    name: "Admin User",
-    role: "admin" as const,
-    createdAt: new Date(),
-  },
-  {
-    id: "2",
-    email: "user@sweetshop.com",
-    password: "user123",
-    name: "John Doe",
-    role: "user" as const,
-    createdAt: new Date(),
-  },
-]
-
-let userIdCounter = 3
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -34,71 +14,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check for saved session
-    const savedUser = localStorage.getItem("sweet_shop_user")
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
+    const token = localStorage.getItem("token")
+    if (token) {
+      fetchUser()
+    } else {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }, [])
+
+  const fetchUser = async () => {
+    try {
+      const response = await api.get("/auth/me")
+      setUser(response.data)
+    } catch {
+      // If fetching user fails, clear the token
+      localStorage.removeItem("token")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const login = async (email: string, password: string) => {
     setIsLoading(true)
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    const foundUser = MOCK_USERS.find((u) => u.email === email && u.password === password)
-
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser
-      setUser(userWithoutPassword)
-      localStorage.setItem("sweet_shop_user", JSON.stringify(userWithoutPassword))
-      setIsLoading(false)
+    
+    try {
+      const response = await api.post("/auth/login", { email, password })
+      const { token } = response.data
+      
+      // Store token
+      localStorage.setItem("token", token)
+      
+      // Fetch user data
+      await fetchUser()
       return { success: true }
+    } catch (error: unknown) {
+      setIsLoading(false)
+      if (error instanceof Error) {
+        return { success: false, error: error.message || "Login failed" }
+      }
+      return { success: false, error: "Login failed" }
     }
-
-    setIsLoading(false)
-    return { success: false, error: "Invalid email or password" }
   }
 
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true)
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    // Check if user already exists
-    if (MOCK_USERS.find((u) => u.email === email)) {
+    
+    try {
+      const response = await api.post("/auth/register", { name, email, password })
+      const { token } = response.data
+      
+      localStorage.setItem("token", token)
+      
+      // Fetch user data
+      await fetchUser()
+      return { success: true }
+    } catch (error: unknown) {
       setIsLoading(false)
-      return { success: false, error: "Email already registered" }
+      if (error instanceof Error) {
+        return { success: false, error: error.message || "Registration failed" }
+      }
+      return { success: false, error: "Registration failed" }
     }
-
-    // Create new user
-    const newUser = {
-      id: String(userIdCounter++),
-      email,
-      password,
-      name,
-      role: "user" as const,
-      createdAt: new Date(),
-    }
-
-    MOCK_USERS.push(newUser)
-
-    const { password: _, ...userWithoutPassword } = newUser
-    setUser(userWithoutPassword)
-    localStorage.setItem("sweet_shop_user", JSON.stringify(userWithoutPassword))
-    setIsLoading(false)
-    return { success: true }
   }
 
   const logout = () => {
     setUser(null)
     localStorage.removeItem("sweet_shop_user")
+    localStorage.removeItem("token")
   }
 
   return <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>{children}</AuthContext.Provider>
 }
 
-export function useAuth() {
+// Separate export to avoid fast refresh warning
+export const useAuth = () => {
   const context = useContext(AuthContext)
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider")
