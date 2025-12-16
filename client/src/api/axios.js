@@ -1,7 +1,10 @@
 import axios from "axios";
 
+// Use environment variable for baseURL if available, otherwise default to localhost
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL,
 });
 
 api.interceptors.request.use((config) => {

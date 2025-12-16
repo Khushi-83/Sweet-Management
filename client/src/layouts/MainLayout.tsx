@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-import { AuthProvider } from "@/contexts/auth-context"
+import { AuthProvider } from "@/contexts/auth-context.tsx"
 import { SweetsProvider } from "@/contexts/sweets-context"
 import { CartProvider } from "@/contexts/cart-context"
 import { Toaster } from "@/components/ui/toaster"

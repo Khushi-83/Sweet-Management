@@ -1,7 +1,7 @@
 "use client"
 
 import { SweetsGrid } from "@/components/sweets/sweets-grid"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/hooks/use-auth"
 
 export function UserDashboard() {
   const { user } = useAuth()

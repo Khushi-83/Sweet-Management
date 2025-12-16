@@ -2,7 +2,15 @@ const app = require("./app");
 const connectDB = require("./config/db");
 const User = require("./models/user");
 const bcrypt = require("bcryptjs");
-require('dotenv').config();
+
+// Safely load dotenv
+let dotenvLoaded = false;
+try {
+  require('dotenv').config();
+  dotenvLoaded = true;
+} catch (error) {
+  console.warn('dotenv not available, using environment variables directly');
+}
 
 const PORT = process.env.PORT || 5000;
 

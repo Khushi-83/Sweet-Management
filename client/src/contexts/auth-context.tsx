@@ -1,12 +1,11 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
-import type { User, AuthContextType } from "@/lib/types"
+import { useState, useEffect } from "react"
+import type { User } from "@/lib/types"
 // @ts-expect-error - Need to properly type the axios module
 import api from "@/api/axios"
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+import { AuthContext } from "./auth-context"
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -86,11 +85,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>{children}</AuthContext.Provider>
 }
 
-// Separate export to avoid fast refresh warning
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
-  return context
-}
+// Removed useAuth hook to fix Fast Refresh warning
+// The hook is now in /client/src/hooks/use-auth.ts
